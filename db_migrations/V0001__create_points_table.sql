@@ -1,0 +1,10 @@
+CREATE TABLE IF NOT EXISTS points (
+    id SERIAL PRIMARY KEY,
+    x FLOAT NOT NULL,
+    y FLOAT NOT NULL,
+    label VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_points_created_at ON points(created_at);

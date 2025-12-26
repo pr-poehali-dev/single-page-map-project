@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 
@@ -21,20 +21,38 @@ const Index = () => {
   const [editingLabel, setEditingLabel] = useState('');
 
   const menuItems = ['Главная', 'Карта', 'Помещения', 'Контакты', 'Справка'];
+  const API_URL = 'https://functions.poehali.dev/3a4fd60f-a643-4323-9a9e-dd7ce1ad1dd8';
 
-  const handleMapClick = (e: React.MouseEvent<HTMLDivElement>) => {
+  useEffect(() => {
+    fetchPoints();
+  }, []);
+
+  const fetchPoints = async () => {
+    try {
+      const response = await fetch(API_URL);
+      const data = await response.json();
+      setPoints(data);
+    } catch (error) {
+      console.error('Failed to fetch points:', error);
+    }
+  };
+
+  const handleMapClick = async (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const x = (e.clientX - rect.left - pan.x) / zoom;
     const y = (e.clientY - rect.top - pan.y) / zoom;
     
-    const newPoint: Point = {
-      id: Date.now(),
-      x,
-      y,
-      label: `Точка ${points.length + 1}`
-    };
-    
-    setPoints([...points, newPoint]);
+    try {
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ x, y, label: `Точка ${points.length + 1}` })
+      });
+      const newPoint = await response.json();
+      setPoints([...points, newPoint]);
+    } catch (error) {
+      console.error('Failed to create point:', error);
+    }
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -70,8 +88,13 @@ const Index = () => {
     setPan({ x: 0, y: 0 });
   };
 
-  const handleDeletePoint = (id: number) => {
-    setPoints(points.filter(point => point.id !== id));
+  const handleDeletePoint = async (id: number) => {
+    try {
+      await fetch(`${API_URL}?id=${id}`, { method: 'DELETE' });
+      setPoints(points.filter(point => point.id !== id));
+    } catch (error) {
+      console.error('Failed to delete point:', error);
+    }
   };
 
   const handleEditPoint = (id: number, currentLabel: string) => {
@@ -79,11 +102,19 @@ const Index = () => {
     setEditingLabel(currentLabel);
   };
 
-  const handleSaveEdit = (id: number) => {
+  const handleSaveEdit = async (id: number) => {
     if (editingLabel.trim()) {
-      setPoints(points.map(point => 
-        point.id === id ? { ...point, label: editingLabel.trim() } : point
-      ));
+      try {
+        const response = await fetch(API_URL, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id, label: editingLabel.trim() })
+        });
+        const updatedPoint = await response.json();
+        setPoints(points.map(point => point.id === id ? updatedPoint : point));
+      } catch (error) {
+        console.error('Failed to update point:', error);
+      }
     }
     setEditingPointId(null);
     setEditingLabel('');
