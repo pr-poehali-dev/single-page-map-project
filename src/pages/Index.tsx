@@ -68,6 +68,10 @@ const Index = () => {
     setPan({ x: 0, y: 0 });
   };
 
+  const handleDeletePoint = (id: number) => {
+    setPoints(points.filter(point => point.id !== id));
+  };
+
   return (
     <div className="min-h-screen bg-background text-foreground relative overflow-hidden">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/10 via-background to-background pointer-events-none" />
@@ -286,8 +290,17 @@ const Index = () => {
                 >
                   <div className="relative">
                     <div className="w-4 h-4 bg-primary rounded-full animate-pulse shadow-lg shadow-primary/50 border-2 border-background" />
-                    <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 bg-card border border-primary/50 rounded px-2 py-1 whitespace-nowrap text-xs font-semibold opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-lg">
-                      {point.label}
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 bg-card border border-primary/50 rounded px-2 py-1 whitespace-nowrap text-xs font-semibold opacity-0 group-hover:opacity-100 transition-opacity shadow-lg flex items-center gap-2">
+                      <span>{point.label}</span>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeletePoint(point.id);
+                        }}
+                        className="p-0.5 hover:bg-destructive/20 rounded transition-colors"
+                      >
+                        <Icon name="X" size={12} className="text-destructive" />
+                      </button>
                     </div>
                   </div>
                 </div>
