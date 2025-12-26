@@ -17,6 +17,8 @@ const Index = () => {
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [editingPointId, setEditingPointId] = useState<number | null>(null);
+  const [editingLabel, setEditingLabel] = useState('');
 
   const menuItems = ['Главная', 'Карта', 'Помещения', 'Контакты', 'Справка'];
 
@@ -70,6 +72,26 @@ const Index = () => {
 
   const handleDeletePoint = (id: number) => {
     setPoints(points.filter(point => point.id !== id));
+  };
+
+  const handleEditPoint = (id: number, currentLabel: string) => {
+    setEditingPointId(id);
+    setEditingLabel(currentLabel);
+  };
+
+  const handleSaveEdit = (id: number) => {
+    if (editingLabel.trim()) {
+      setPoints(points.map(point => 
+        point.id === id ? { ...point, label: editingLabel.trim() } : point
+      ));
+    }
+    setEditingPointId(null);
+    setEditingLabel('');
+  };
+
+  const handleCancelEdit = () => {
+    setEditingPointId(null);
+    setEditingLabel('');
   };
 
   return (
@@ -291,16 +313,65 @@ const Index = () => {
                   <div className="relative">
                     <div className="w-4 h-4 bg-primary rounded-full animate-pulse shadow-lg shadow-primary/50 border-2 border-background" />
                     <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 bg-card border border-primary/50 rounded px-2 py-1 whitespace-nowrap text-xs font-semibold opacity-0 group-hover:opacity-100 transition-opacity shadow-lg flex items-center gap-2">
-                      <span>{point.label}</span>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeletePoint(point.id);
-                        }}
-                        className="p-0.5 hover:bg-destructive/20 rounded transition-colors"
-                      >
-                        <Icon name="X" size={12} className="text-destructive" />
-                      </button>
+                      {editingPointId === point.id ? (
+                        <>
+                          <input
+                            type="text"
+                            value={editingLabel}
+                            onChange={(e) => setEditingLabel(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                handleSaveEdit(point.id);
+                              } else if (e.key === 'Escape') {
+                                handleCancelEdit();
+                              }
+                            }}
+                            className="bg-background text-foreground px-1 py-0.5 rounded w-24 focus:outline-none focus:ring-1 focus:ring-primary"
+                            autoFocus
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleSaveEdit(point.id);
+                            }}
+                            className="p-0.5 hover:bg-primary/20 rounded transition-colors"
+                          >
+                            <Icon name="Check" size={12} className="text-primary" />
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleCancelEdit();
+                            }}
+                            className="p-0.5 hover:bg-destructive/20 rounded transition-colors"
+                          >
+                            <Icon name="X" size={12} className="text-muted-foreground" />
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <span>{point.label}</span>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEditPoint(point.id, point.label);
+                            }}
+                            className="p-0.5 hover:bg-primary/20 rounded transition-colors"
+                          >
+                            <Icon name="Pencil" size={12} className="text-primary" />
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeletePoint(point.id);
+                            }}
+                            className="p-0.5 hover:bg-destructive/20 rounded transition-colors"
+                          >
+                            <Icon name="X" size={12} className="text-destructive" />
+                          </button>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>
